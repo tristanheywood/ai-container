@@ -34,13 +34,15 @@ USER $USERNAME
 
 COPY bashrc /home/$USERNAME/.bashrc
 # Make byobu use bash as its shell (doens't work - maybe this file doens't exist until byobu is run).
+COPY tmux.conf /home/$USERNAME/.byobu/.tmux.conf
 # RUN echo "set -g default-shell /bin/bash\nset -g default-command /bin/bash" >> /home/$USERNAME/.byobu/.tmux.conf
 
 # Start the container in the home directory.
 WORKDIR /home/$USERNAME
 
-RUN git clone https://github.com/openai/triton.git /home/$USERNAME/triton \
-    && git clone https://github.com/tristanheywood/jax-triton /home/$USERNAME/jax-triton
-
 RUN pip install cmake \
  && pip install "jax[cuda11_cudnn82]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+
+# Install Nsight systems for profiling
+RUN sh -c sh -c 'echo kernel.perf_event_paranoid=2 > /etc/sysctl.d/local.conf'
+RUN sudo apt-get install -y cuda-nsight-systems-11-6 nsight-systems-2022.4.2
