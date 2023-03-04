@@ -1,4 +1,7 @@
-FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-devel
+# FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-devel
+# https://github.com/orgs/pytorch/packages/container/pytorch-nightly/74629833?tag=5bdd054-cu11.7.0
+# FROM ghcr.io/pytorch/pytorch-nightly:5bdd054-cu11.7.0
+FROM ghcr.io/pytorch/pytorch-nightly:2.1.0.dev20230303-devel
 
 # Install gcc/g++ v9 for building triton.
 RUN apt-get update && apt-get install -y software-properties-common \
@@ -32,6 +35,9 @@ RUN groupadd --gid $USER_GID $USERNAME \
 USER $USERNAME
 # End Copy
 
+# Needed to let conda install packages.
+RUN sudo chown $USERNAME -R /opt/conda
+
 COPY bashrc /home/$USERNAME/.bashrc
 # Make byobu use bash as its shell (doens't work - maybe this file doens't exist until byobu is run).
 COPY tmux.conf /home/$USERNAME/.byobu/.tmux.conf
@@ -40,9 +46,14 @@ COPY tmux.conf /home/$USERNAME/.byobu/.tmux.conf
 # Start the container in the home directory.
 WORKDIR /home/$USERNAME
 
+# This is where cmake will be installed.
+ENV PATH="${PATH}:/home/$USERNAME/.local/bin"
+
 RUN pip install cmake \
  && pip install "jax[cuda11_cudnn82]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
 # Install Nsight systems for profiling
 RUN sh -c sh -c 'echo kernel.perf_event_paranoid=2 > /etc/sysctl.d/local.conf'
-RUN sudo apt-get install -y cuda-nsight-systems-11-6 nsight-systems-2022.4.2
+# Fails since moving to new Pytorch 2.0 image.
+RUN sudo apt-get update && \
+    sudo apt-get install -y cuda-nsight-systems-11-6 nsight-systems-2022.4.2
