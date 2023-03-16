@@ -1,3 +1,27 @@
+# Docker setup
+
+## Lambda Labs Persistent Storage
+
+On Lambda Labs machines, we want docker to store the images and containers in the
+persistent storage, to avoid needing to rebuild the images when a new instance is launched.
+
+Here we assume the persistent filesystem is called 'ai-expr'.
+
+```
+sudo apt install -y fuse-overlayfs
+sudo vim /etc/docker/daemon.json
+# Paste the following:
+{
+  "data-root": "/home/ubuntu/ai-expr/var-lib-docker",
+  "storage-driver": "fuse-overlayfs"
+}
+# Restart docker
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+```
+
+Continue as normal, except that on lambda labs docker needs `sudo` for some reason.
+
 # Building the container
 
 We split the build up into a cache-able part and a non cacheable part. The non-cacheable
