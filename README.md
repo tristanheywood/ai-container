@@ -4,13 +4,27 @@ We split the build up into a cache-able part and a non cacheable part. The non-c
 part pulls git repos.
 
 ```
-docker build base-image -t ai-container-base
-docker build dev-image --no-cache -t ai-container
+docker build base-image -t ai-container:base
+docker build dev-image --no-cache -t ai-container:dev
 ```
 
 Note: `--no-cache` can be omitted if you pull and build the repos inside the container.
 
 Builds an image called 'ai-container'.
+
+## Pushing
+
+### Login
+
+```
+echo "<github token>" | docker login ghcr.io -u tristanheywood --password-stdin
+```
+
+```
+docker image tag ai-container:base ghcr.io/tristanheywood/ai-container:base
+docker push ghcr.io/tristanheywood/ai-container:base
+
+```
 
 ## In-container setup steps (todo: move these into the docker file)
 
